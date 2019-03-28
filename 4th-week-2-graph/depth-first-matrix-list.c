@@ -80,7 +80,7 @@ void printAdjList(node * a[], int *v) {
 //////////////////////print end
 
 //////////////////////////depthsearch
-void visit(int i){
+void visitprint(int i){
     printf("%3c",intToChar(i));
 }
 
@@ -93,19 +93,19 @@ void depthFirstNonRecurList(node * a[], int v){
     }
     for(i = 0; i < v; i++){
         if(marker[i] == 0){
-            push(i);
+            //push(a[i] -> vertex);
             marker[i] = 1;
+            visitPrint(i);
+
+            for (j = a[i]; j != NULL; j = j -> next){    //현재 연결된 노드와 연결된 노드를 스택에 넣는다.            
+                
+               push(j -> vertex);
+            }
+            
             while(!stackEmpty()){
-                i = pop();
-                visit(i);
-                for (j = (*a[i]).next; j != NULL; j = (*j).next){
-                    if((*a[i]).next != NULL){
-                        if(marker[(*a[i]).vertex] == 0){
-                            push((*a[i]).vertex);
-                            marker[(*a[i]).vertex]=0;
-                        }
-                    }
-                }
+                pop();
+                visit(a[i] -> vertex));
+                
             }
         }
     }
@@ -131,7 +131,7 @@ void inputAdjList(node * a[], int *v, int *e) {
 		t->vertex = nameToInt(vertex[1]);
 		t->next = a[i];
 		a[i] = t;
-        printf("%c",intToChar((*a[i]).vertex));
+        printf("%c",intToChar(a[i]->vertex));
 
 		i = nameToInt(vertex[1]);
 		t = (node *)malloc(sizeof(node));
