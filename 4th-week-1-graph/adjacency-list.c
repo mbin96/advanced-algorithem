@@ -9,11 +9,6 @@ typedef struct _node {
 
 node *GL[MAXNODE];
 
-
-
-
-
-
 int nameToInt(char c) {
 	return c - 'A';
 }
