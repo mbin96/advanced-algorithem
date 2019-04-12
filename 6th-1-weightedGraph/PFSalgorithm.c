@@ -10,7 +10,7 @@ typedef struct node{
 
 ///////////////define and golbal variable///////
 #define MAXNODE 100
-#define UNSEEN (INT_MIN)
+#define UNSEEN (INT_MIN+1)
 
 node *G[MAXNODE];
 int weight[MAXNODE];
@@ -21,6 +21,7 @@ int heap[MAXNODE];
 
 //////////////////////////////////////////////
 
+
 int nameToInt(char c) {
 	return c - 'A';
 }
@@ -28,79 +29,6 @@ int nameToInt(char c) {
 char intToChar(int i) {
 	return i + 'A';
 }
-
-void pqInit(){
-    nheap=0; //heap의 초기화
-}
-void PFSadjlist(node *g[], int v){
-    int i;
-    node *t;
-    pqInit();
-    for(i = 0; i < v; i++){
-        weight[i] = UNSEEN;//초기값 설정
-        parent[i] = 0; //tree 설정
-    }
-    for(i = 0; i < v; i++){
-        if(weight[i] == UNSEEN){    //즉 맨 첫번째로 방문한것
-            parent[i] = -1; //set root
-            pqUpdate(heap, i, UNSEEN);
-            while(!pqEmpty()){
-                printHeap(heap);
-                i = pqExtract(heap);
-                weight[i] = -weight[i];
-                visit(i);
-                for(t = g[i]; t !=NULL; t = t -> next){
-                    if(weight[t->vertex] < 0){
-                        if(pqUpdate(heap, t-> vertex, -t -> weight)){
-                            parent[t->vertex] = i;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-int pqUpdate(int h[], int v, int p){
-    if(weight[v] == UNSEEN){
-        h[++nheap] = v;
-        weight[v] = p;
-        upheap(h, nheap);
-        return 1;
-    }else{
-        if(weight[v] < p){
-            weight[v] = p;
-            adjustHeap(h,nheap);
-            return 1;
-        }else{
-            return 0;
-        }
-    }
-}
-
-void printAdjlist(node *g[], int v){
-    int i;
-    node *t;
-    for(i = 0; i < v; i++){
-        printf("\n%c : ",intToChar(i));
-        for(t = g[i]; t!= NULL; t = t->next){
-            printf("-> %c:%d ", intToChar(t->vertex),t->weight);
-        }
-    }
-}
-
-void printHeap(int h[]){
-    int i;
-    printf("\n");
-    for(i = 1; i <= nheap; i++){
-        printf("%c:%d ", intToChar(h[i]), weight[h[i]]);
-    }
-}
-void visit(int i){
-    printf("%3c",intToChar(i));
-
-}
-
 
 ////////////heap/////////////
 void upheap(int *a, int k){
@@ -154,7 +82,7 @@ int pqExtract(int *a){
     downheap(a,1);
     return v;
 }
-int adjustHeap(int *a, int n){
+void adjustHeap(int *a, int n){
     int k;
     for(k = n/2; k >=1; k--){
         downheap(a,k);
@@ -165,17 +93,60 @@ int adjustHeap(int *a, int n){
 
 
 /////////////heapend///////////////////////
+void printHeap(int h[]){
+    int i;
+    printf("\n");
+    for(i = 1; i <= nheap; i++){
+        printf("%c:%d ", intToChar(h[i]), weight[h[i]]);
+    }
+}
+void visit(int i){
+    printf("%3c",intToChar(i));
+
+}
+
+void pqInit(){
+    nheap=0; //heap의 초기화
+}
 
 
+int pqUpdate(int h[], int v, int p){
+    if(weight[v] == UNSEEN){
+        h[++nheap] = v;
+        weight[v] = p;
+        upheap(h, nheap);
+        return 1;
+    }else{
+        if(weight[v] < p){
+            weight[v] = p;
+            adjustHeap(h,nheap);
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+}
 
-void inputAdjList(node * a[], int *v, int *e) {
+void printAdjlist(node *g[], int v){
+    int i;
+    node *t;
+    for(i = 0; i < v; i++){
+        printf("\n%c : ",intToChar(i));
+        for(t = g[i]; t!= NULL; t = t->next){
+            printf("-> %c:%d ", intToChar(t->vertex),t->weight);
+        }
+    }
+}
+
+
+void inputAdjjList(node * g[], int *v, int *e) {
 	char vertex[3];
 	int i, j, w;
 	node *t;
 	printf("\ninput numberof node and edge\n");// 
 	fscanf(fp,"%d %d", v, e);//입력받기. 앞이 노드 뒤가 엣지.
 	for (i = 0; i < *v; i++) {
-		a[i] = NULL;
+		g[i] = NULL;
 	}
 
 	for (j = 0; j < *e; j++) {
@@ -186,30 +157,84 @@ void inputAdjList(node * a[], int *v, int *e) {
         i = nameToInt(vertex[0]);
 		t = (node *)malloc(sizeof(node));
 		t->vertex = nameToInt(vertex[1]);
-		t->next = a[i];
+		t->next = g[i];
         t->weight = w;
-		a[i] = t;
+		g[i] = t;
 
         //위 코드랑 반대로 동작
 		i = nameToInt(vertex[1]);
 		t = (node *)malloc(sizeof(node));
 		t->vertex = nameToInt(vertex[0]);
-		t->next = a[i];
+		t->next = g[i];
         t->weight = w;
-		a[i] = t;
+		g[i] = t;
 	}
 }
 
-void main(){
+void PFSadjlist(node *g[], int v){
+    int i;
+    node *t;
+    pqInit();
+    for(i = 0; i < v; i++){
+        weight[i] = UNSEEN;//초기값 설정
+        parent[i] = 0; //tree 설정
+    }
+    for(i = 0; i < v; i++){
+        if(weight[i] == UNSEEN){    //즉 맨 첫번째로 방문한것
+            parent[i] = -1; //set root
+            pqUpdate(heap, i, UNSEEN);
+            while(!pqEmpty()){
+                printHeap(heap);
+                i = pqExtract(heap);
+                weight[i] = -weight[i];
+                visit(i);
+                for(t = g[i]; t !=NULL; t = t -> next){
+                    if(weight[t->vertex] < 0){
+                        if(pqUpdate(heap, t-> vertex, -t -> weight)){
+                            parent[t->vertex] = i;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+////////////////////////////////HW/////////////////////////////////////
+int calCost(int weight[], int v){
+    int cost = 0;
+    for(int i = 1; i < v; i++){
+        cost += weight[i];
+    }
+    return cost;
+}
+
+void printParent(int v){
+    for (int i = 0; i < v; i++){
+        if(parent[i] > -1){
+            printf("%c's parent is %c\n",intToChar(i),intToChar(parent[i]));
+        }else{
+            printf("%c is root\n",intToChar(i));
+        }
+    }
+}
+////////////////////////////////HW//////////////////////////////////////
+
+
+
+
+int main(){
     int v, e;
     fp = fopen("graph.txt", "rt");
 
-    inputAdjlist(G, &v, &e);
+    inputAdjjList(G, &v, &e);
     printf("\nOriginal Graph\n");
     printAdjlist(G, v);
     printf("\nVisit order of Minimum Spaning tree\n");
     PFSadjlist(G, v);
-    printf("\nMinimum Coat is\n");
-    //printCost(weight, v);
+    ///////////////////////HW///////////////////////////
+    printf("\nMinimum Coat is %d\n",calCost(weight, v));
+    printParent(v);
+    ///////////////////////HW///////////////////////////
     fclose(fp);
 }
