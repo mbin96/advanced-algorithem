@@ -42,12 +42,6 @@ void upheap(int *a, int k){
 
 }
 
-int pqEmpty(){
-    if(nheap ==0) return 1;
-    return 0;
-}
-
-
 
 void downheap(int *a, int k){
     int i, v;
@@ -70,11 +64,18 @@ void downheap(int *a, int k){
     //가장 작은 자식노드에 값넣기
     a[k] = v;
 }
+
 void insert(int *a, int *n, int v){
     //노드의 맨 끝에 공간은 만들고 값을 넣음
     a[++(*n)] = v;
     upheap(a, *n);
 }
+
+int pqEmpty(){
+    if(nheap ==0) return 1;
+    return 0;
+}
+
 int pqExtract(int *a){
     int v = a[1];
     //꺼내고나서 끝값 줄이기(공간없애기)
@@ -82,6 +83,8 @@ int pqExtract(int *a){
     downheap(a,1);
     return v;
 }
+
+//가중치 값이 변경(작아짐) 되었을때 그 부모값부터 재정렬
 void adjustHeap(int *a, int n){
     int k;
     for(k = n/2; k >=1; k--){
@@ -90,7 +93,9 @@ void adjustHeap(int *a, int n){
 
 }
 
-
+void pqInit(){
+    nheap=0; //heap의 초기화
+}
 
 /////////////heapend///////////////////////
 void printHeap(int h[]){
@@ -102,27 +107,22 @@ void printHeap(int h[]){
 }
 void visit(int i){
     printf("%3c",intToChar(i));
-
-}
-
-void pqInit(){
-    nheap=0; //heap의 초기화
 }
 
 
 int pqUpdate(int h[], int v, int p){
-    if(weight[v] == UNSEEN){
+    if(weight[v] == UNSEEN){ //미방문인 경우
         h[++nheap] = v;
-        weight[v] = p;
+        weight[v] = p;      //음수 웨이트를 넣어줌
         upheap(h, nheap);
         return 1;
     }else{
-        if(weight[v] < p){
-            weight[v] = p;
-            adjustHeap(h,nheap);
-            return 1;
+        if(weight[v] < p){ //p는 음수인 가중치이므로, fringe vertex이면서 새 가중치가 이전 가중치보다 더 작은경우 실행
+            weight[v] = p;  //가중치가 더 작은경우 해당 가중치로 변경
+            adjustHeap(h,nheap);    //가중치가 변경된게 있으니 힙 정렬
+            return 1;       
         }else{
-            return 0;
+            return 0;   //갱신안된경우
         }
     }
 }
@@ -182,16 +182,17 @@ void PFSadjlist(node *g[], int v){
     for(i = 0; i < v; i++){
         if(weight[i] == UNSEEN){    //즉 맨 첫번째로 방문한것
             parent[i] = -1; //set root
-            pqUpdate(heap, i, UNSEEN);
+            pqUpdate(heap, i, UNSEEN);//첫방문이므로 힙의 끝에 공간 만들고 넣은뒤  up힙
+            
             while(!pqEmpty()){
                 printHeap(heap);
-                i = pqExtract(heap);
-                weight[i] = -weight[i];
-                visit(i);
-                for(t = g[i]; t !=NULL; t = t -> next){
-                    if(weight[t->vertex] < 0){
-                        if(pqUpdate(heap, t-> vertex, -t -> weight)){
-                            parent[t->vertex] = i;
+                i = pqExtract(heap);//힙에서 하나 가져오기
+                weight[i] = -weight[i];//무게의 역(루트방문의 경우 int_min의 역수인 intmax가 된다)
+                visit(i);   //방문표시
+                for(t = g[i]; t !=NULL; t = t -> next){ //리스트 따라가기
+                    if(weight[t->vertex] < 0){  //UNSEEN 노드나 fringe노드인 경우
+                        if(pqUpdate(heap, t-> vertex, -t -> weight)){   // i와 (t->vertex)간의 무게 비교. 
+                            parent[t->vertex] = i;//이전무게보다 작은경우 변경하고 부모노드의 갱신
                         }
                     }
                 }
@@ -200,11 +201,11 @@ void PFSadjlist(node *g[], int v){
     }
 }
 
-////////////////////////////////HW/////////////////////////////////////
+////////////////////////////////HW start/////////////////////////////////////
 int calCost(int weight[], int v){
     int cost = 0;
     for(int i = 1; i < v; i++){
-        cost += weight[i];
+        cost += weight[i];      //fringe 노드를 tree vertex로 할때의 각각의 가중치를 다 더한
     }
     return cost;
 }
@@ -212,13 +213,13 @@ int calCost(int weight[], int v){
 void printParent(int v){
     for (int i = 0; i < v; i++){
         if(parent[i] > -1){
-            printf("%c's parent is %c\n",intToChar(i),intToChar(parent[i]));
+            printf("%c's parent is %c\n",intToChar(i),intToChar(parent[i])); //루트노드 외의 경우엔 부모를 출력 
         }else{
-            printf("%c is root\n",intToChar(i));
+            printf("%c is root\n",intToChar(i));    
         }
     }
 }
-////////////////////////////////HW//////////////////////////////////////
+////////////////////////////////HW end//////////////////////////////////////
 
 
 
@@ -232,9 +233,9 @@ int main(){
     printAdjlist(G, v);
     printf("\nVisit order of Minimum Spaning tree\n");
     PFSadjlist(G, v);
-    ///////////////////////HW///////////////////////////
+    ///////////////////////HW start///////////////////////////
     printf("\nMinimum Coat is %d\n",calCost(weight, v));
     printParent(v);
-    ///////////////////////HW///////////////////////////
+    ///////////////////////HW end///////////////////////////
     fclose(fp);
 }
