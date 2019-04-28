@@ -8,13 +8,20 @@ typedef struct edge{
     int weight;
 }Edge;
 
+typedef struct list{
+    int vertex;
+    list * next;
+}list;
+
+
+
 ///////////////define and golbal variable///////
 #define MAXNODE 50
 #define MAXEDGE 100
 #define ONLYFIND 0
 #define UNION 1
 
-
+list * node[MAXNODE];
 int height[MAXNODE];
 int parent[MAXNODE];
 FILE *fp;
@@ -38,12 +45,13 @@ char intToChar(int i) {
 void upheap(int *a, int k){
     int v;
     v = a[k];
-    while(edge[(a[k/2])].weight <= edge[v].weight && k/2 > 0){
+    //부모노드가 자식노드보다 크면 자식노드를 위로 올린다.
+    while(edge[(a[k/2])].weight > edge[v].weight && k/2 > 0){
+        //부모노드값 아래로 내림
         a[k] = a[k/2];
         k /= 2;
     }
     a[k] = v;
-
 }
 
 
@@ -53,19 +61,19 @@ void downheap(int *a, int k){
     while(k <= nheap / 2){
         //2배 즉 k의 자식노드값을 구함
         i = k << 1;//자식노드
-        //자식노드가 존재하면서 오른쪽 자식노드값이 큰경우
-        if(i < nheap && edge[a[i]].weight < edge[a[i+1]].weight){
-            i++;//큰값을 올려야 하니까 오른쪽값을 선택
+        //자식노드가 존재하면서 오른쪽 자식노드값이 작은경우
+        if(i < nheap && edge[a[i]].weight > edge[a[i+1]].weight){
+            i++;//작은값을 올려야 하니까 오른쪽값을 선택
         }
-        //자식노드값이 더 작은경우엔 끝냄.
-        if(edge[v].weight >= edge[a[i]].weight){
+        //자식노드값이 더 크거나 같은경우엔 끝냄.
+        if(edge[v].weight <= edge[a[i]].weight){
             break;
         }
-        //부모노드값을 큰 자식값으로 바꾼다.
+        //부모노드값을 더 작은 자식값으로 바꾼다.
         a[k] = a[i];
         k = i;
     }
-    //가장 작은 자식노드에 값넣기
+    //가능한가장 앞쪽 자식노드에 값넣기
     a[k] = v;
 }
 
@@ -82,7 +90,7 @@ int pqEmpty(){
 
 int pqExtract(int *a){
     int v = a[1];
-    //꺼내고나서 끝값 줄이기(공간없애기)
+    //맨 끝값을 꺼내고나서 끝값 줄이기(공간없애기)
     a[1] = a[nheap--];
     downheap(a,1);
     return v;
@@ -107,6 +115,7 @@ void pqInit(){
 void visit(int i){
     cost += edge[i].weight;
     printf("visit edge %c %c\n",intToChar(edge[i].vertex1),intToChar(edge[i].vertex2));
+    node[edge[i].vertex1]=node[edge[].vertex];
 }
 
 
