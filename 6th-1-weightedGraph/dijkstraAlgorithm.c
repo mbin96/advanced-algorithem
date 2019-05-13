@@ -8,8 +8,6 @@ typedef struct node{
     struct node *next;
 }node;
 
-
-
 ///////////////define and golbal variable///////
 #define MAXNODE 100
 #define UNSEEN (INT_MIN+1)
@@ -20,7 +18,7 @@ int parent[MAXNODE];
 FILE *fp;
 int nheap = 0;
 int heap[MAXNODE];
-int agencyMetrix[MAXNODE][MAXNODE];
+
 //////////////////////////////////////////////
 
 
@@ -141,67 +139,75 @@ void printAdjlist(node *g[], int v){
 }
 
 
-void inputAdjjList(node * g[], int *v, int *e) {
+void inputAdjMatrix(int a[][MAXNODE], int *v, int *e) {
 	char vertex[3];
 	int i, j, w;
 	node *t;
 	printf("\ninput numberof node and edge\n");// 
 	fscanf(fp,"%d %d", v, e);//입력받기. 앞이 노드 뒤가 엣지.
-	for (i = 0; i < *v; i++) {
-		g[i] = NULL;
-	}
-
+	for(i = 0; i < *v ; i++){
+        for(j = 0; j< *v;j++){
+            a[i][j] = INT_MAX; //초기화
+        }
+    }
+    for(i = 0; i<*v; i++){
+        a[i][i]=0;
+    }
 	for (j = 0; j < *e; j++) {
 		printf("\ninput two nodes consist of edge >");
 		fscanf(fp, "%s %d", vertex, &w);
 		
-        //가지 분석해 리스트 만들기.
         i = nameToInt(vertex[0]);
-		t = (node *)malloc(sizeof(node));
-		t->vertex = nameToInt(vertex[1]);
-		t->next = g[i];
-        t->weight = w;
-		g[i] = t;
+        j = nameToInt(vertex[1]);
 
-        //위 코드랑 반대로 동작
-		i = nameToInt(vertex[1]);
-		t = (node *)malloc(sizeof(node));
-		t->vertex = nameToInt(vertex[0]);
-		t->next = g[i];
-        t->weight = w;
-		g[i] = t;
+        a[i][j] = w;
+        a[j][i] = w;
+
+
 	}
 }
 
-void PFSadjlist(node *g[], int v){
-    int i;
-    node *t;
-    pqInit();
-    for(i = 0; i < v; i++){
-        weight[i] = UNSEEN;//초기값 설정
-        parent[i] = 0; //tree 설정
+int distance[MAXNODE], check[MAXNODE];
+
+void dijkstra(int a[][MAXNODE], int s, int v){
+    int x =0, y, d;
+    int i, checked=0;
+    for (x = 0; x < v ; x++){
+        distance[x] = a[s][x];
+        if(x != s){
+            parent[x] = s;
+        }
     }
-    for(i = 0; i < v; i++){
-        if(weight[i] == UNSEEN){    //즉 맨 첫번째로 방문한것
-            parent[i] = -1; //set root
-            pqUpdate(heap, i, 0);//첫방문이므로 힙의 끝에 공간 만들고 넣은뒤  up힙
-            
-            while(!pqEmpty()){
-                printHeap(heap);
-                i = pqExtract(heap);//힙에서 하나 가져오기
-                weight[i] = -weight[i];//무게의 역(루트방문의 경우 int_min의 역수인 intmax가 된다)
-                visit(i);   //방문표시
-                for(t = g[i]; t !=NULL; t = t -> next){ //리스트 따라가기
-                    if(weight[t->vertex] < 0){  //UNSEEN 노드나 fringe노드인 경우
-                        if(pqUpdate(heap, t-> vertex, -(t->weight - weight[i]))){   // i와 (t->vertex)간의 무게 비교. 
-                            parent[t->vertex] = i;//이전무게보다 작은경우 변경하고 부모노드의 갱신
-                        }
-                    }
+    check[s] = 1;
+    checked++;
+
+    print_distance(distance[x], s, v);
+    while(checked < v){    
+        while(check[x]){
+            x++;
+        }
+        for(i = x; i<v; i++){
+            if (check[i] == 0 && distance[i] < distance[x]){
+                x = i;
+            }
+            check[x] = 1;
+            checked++;
+
+            for(y = 0; y < v; y++){
+                if(x == y || a[x][y] >= MAXNODE || check[y]){
+                    continue;
+                }
+                d = distance[x] + a[x][y];
+                if(d <  distance[y]){
+                    distance[y] = d;
+                    parent[y] = x;
                 }
             }
         }
-    }
+        print_distance(distance, x, v);
+    }    
 }
+
 
 ////////////////////////////////HW start/////////////////////////////////////
 int calCost(int weight[], int v){
@@ -230,11 +236,11 @@ int main(){
     int v, e;
     fp = fopen("graph.txt", "rt");
 
-    inputAdjjList(agencyMetrix, &v, &e);
+    inputAdjMatrix(G, &v, &e);
     printf("\nOriginal Graph\n");
-    printAdjlist(agencyMetrix, v);
+    printAdjlist(G, v);
     printf("\nVisit order of Minimum Spaning tree\n");
-    PFSadjlist(agencyMetrix, v);
+    PFSadjlist(G, v);
     ///////////////////////HW start///////////////////////////
     printf("\nMinimum Coat is %d\n",calCost(weight, v));
     printParent(v);
